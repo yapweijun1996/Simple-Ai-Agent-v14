@@ -144,15 +144,18 @@ Begin Reasoning Now:
             // Remove duplicate results by URL
             const uniqueResults = [];
             const seenUrls = new Set();
+            debugLog({ step: 'deduplication', before: allResults });
             for (const r of allResults) {
                 if (!seenUrls.has(r.url)) {
                     uniqueResults.push(r);
                     seenUrls.add(r.url);
                 }
             }
+            debugLog({ step: 'deduplication', after: uniqueResults });
             const plainTextResults = uniqueResults.map((r, i) => `${i+1}. ${r.title} (${r.url}) - ${r.snippet}`).join('\n');
             state.chatHistory.push({ role: 'assistant', content: `Search results for "${args.query}" (total ${uniqueResults.length}):\n${plainTextResults}` });
             state.lastSearchResults = uniqueResults;
+            debugLog({ step: 'suggestResultsToRead', results: uniqueResults });
             // Prompt AI to suggest which results to read
             await suggestResultsToRead(uniqueResults, args.query);
         },
@@ -689,6 +692,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
         state.highlightedResultIndices = new Set(nums.map(n => n - 1));
         // Map numbers to URLs (1-based index)
         const urlsToRead = nums.map(n => state.lastSearchResults[n-1]?.url).filter(Boolean);
+        debugLog({ step: 'autoReadAndSummarizeFromSuggestion', selectedUrls: urlsToRead });
         if (!urlsToRead.length) return;
         state.autoReadInProgress = true;
         try {
@@ -893,6 +897,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
                     finalAnswer = candidate.content.text.trim();
                 }
             }
+            debugLog({ step: 'synthesizeFinalAnswer', finalAnswer });
             if (finalAnswer) {
                 UIController.addMessage('ai', `Final Answer:\n${finalAnswer}`);
             }
