@@ -317,21 +317,34 @@ const UIController = (function() {
         const chatWindow = document.getElementById('chat-window');
         const article = document.createElement('article');
         article.className = 'chat-app__message ai-message read-result';
-        article.innerHTML = `
-            <div class="chat-app__message-content" aria-label="Read result">
-                <strong>Read from: <a href="${url}" target="_blank" rel="noopener noreferrer" tabindex="0">${url}</a></strong>
-                <p>${Utils.escapeHtml(snippet)}${hasMore ? '...' : ''}</p>
-                ${hasMore ? '<button class="read-more-btn" aria-label="Read more from this page">Read More</button>' : ''}
-            </div>
-        `;
+        // Improved card structure
+        const card = document.createElement('div');
+        card.className = 'read-result-card';
+        // Header with icon and link
+        const header = document.createElement('div');
+        header.className = 'read-result-header';
+        header.innerHTML = `<span class="read-result-icon" aria-hidden="true">🔗</span><a href="${url}" target="_blank" rel="noopener noreferrer" tabindex="0">Source</a>`;
+        card.appendChild(header);
+        // Snippet with fade if long
+        const snippetDiv = document.createElement('div');
+        snippetDiv.className = 'read-result-snippet';
+        snippetDiv.textContent = snippet + (hasMore ? '...' : '');
+        if (snippet.length > 600 || hasMore) snippetDiv.classList.add('faded');
+        card.appendChild(snippetDiv);
+        // Read More button
         if (hasMore) {
-            const btn = article.querySelector('.read-more-btn');
+            const btn = document.createElement('button');
+            btn.className = 'read-more-btn';
+            btn.setAttribute('aria-label', 'Read more from this page');
+            btn.tabIndex = 0;
+            btn.textContent = 'Read More';
             btn.addEventListener('click', () => {
                 const offset = urlOffsets.get(url) || snippet.length;
                 ChatController.processToolCall({ tool: 'read_url', arguments: { url, start: offset, length: 2000 } });
             });
-            btn.tabIndex = 0;
+            card.appendChild(btn);
         }
+        article.appendChild(card);
         chatWindow.appendChild(article);
         article.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }

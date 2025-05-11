@@ -956,4 +956,95 @@ button:focus, .chat-app__send-button:focus, .settings-modal__button:focus {
 .chat-app__message {
     margin: 18px 0;
     padding-left: 0;
+}
+
+/* --- Improved Read Result Card Styles --- */
+.read-result-card {
+  background: #f7faff;
+  border: 1.5px solid #b3d4fc;
+  border-radius: 14px;
+  padding: 16px 18px 14px 18px;
+  margin: 4px 0 4px 0;
+  box-shadow: 0 2px 8px #4f8cff11;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 100%;
+}
+body:not(.light-mode) .read-result-card {
+  background: #23272e;
+  border: 1.5px solid #4f8cff44;
+}
+.read-result-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 2px;
+  color: #4f8cff;
+}
+.read-result-icon {
+  font-size: 1.1em;
+  color: #4f8cff;
+}
+.read-result-header a {
+  color: #4f8cff;
+  text-decoration: underline;
+  font-weight: 600;
+  word-break: break-all;
+}
+.read-result-snippet {
+  font-size: 0.98rem;
+  color: #22334a;
+  max-height: 8.5em;
+  overflow: hidden;
+  position: relative;
+  line-height: 1.5;
+}
+body:not(.light-mode) .read-result-snippet {
+  color: #eaf3ff;
+}
+.read-result-snippet.faded::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0; height: 2.5em;
+  background: linear-gradient(180deg, rgba(247,250,255,0) 0%, #f7faff 90%);
+  pointer-events: none;
+}
+body:not(.light-mode) .read-result-snippet.faded::after {
+  background: linear-gradient(180deg, rgba(35,39,46,0) 0%, #23272e 90%);
+}
+.read-more-btn {
+  display: block;
+  width: fit-content;
+  align-self: flex-end;
+  margin-top: 8px;
+  background: #4f8cff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 4px #4f8cff22;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.read-more-btn:hover, .read-more-btn:focus {
+  background: #0056b3;
+  box-shadow: 0 2px 8px #4f8cff44;
+}
+@media (max-width: 600px) {
+  .read-result-card {
+    padding: 10px 8px 10px 8px;
+    font-size: 0.97rem;
+  }
+  .read-result-header {
+    font-size: 0.97rem;
+  }
+  .read-more-btn {
+    font-size: 0.97rem;
+    padding: 6px 12px;
+  }
 } 
