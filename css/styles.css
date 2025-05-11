@@ -590,17 +590,16 @@ body:not(.light-mode) .chat-app__message.ai-message {
 .chat-app__timestamp {
     font-size: 0.75rem;
     color: #aaa;
-    align-self: flex-end;
-    margin-top: 4px;
-    position: static;
-    right: auto;
-    bottom: auto;
+    position: absolute;
+    right: 14px;
+    bottom: 8px;
     background: none;
     padding: 0;
     border-radius: 0;
     box-shadow: none;
     text-align: right;
     white-space: nowrap;
+    opacity: 0.7;
 }
 body:not(.light-mode) .chat-app__timestamp {
     background: rgba(30,35,48,0.7);
@@ -891,15 +890,46 @@ body:not(.light-mode) .chat-app__settings-button:focus {
     box-shadow: 0 0 0 2px #4f8cff55;
 }
 
-/* --- Empty State Message --- */
+/* --- Empty State Illustration & Message --- */
 .empty-state {
     text-align: center;
     color: var(--text-light-color);
     font-size: 1.1rem;
-    margin: 40px 0;
-    opacity: 0.7;
+    margin: 60px 0 40px 0;
+    opacity: 0.8;
     letter-spacing: 0.02em;
     animation: fadeInMessage 0.6s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.empty-state div:first-child {
+    font-size: 2.5em;
+    margin-bottom: 8px;
+}
+
+/* --- Message Bubble Hover/Active Effects --- */
+.chat-app__message:hover {
+    box-shadow: 0 6px 24px #4f8cff33, 0 2px 8px #0002;
+    filter: brightness(1.03);
+    transition: box-shadow 0.2s, filter 0.2s;
+}
+.avatar {
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.avatar:hover {
+    box-shadow: 0 2px 12px #4f8cff44;
+    transform: scale(1.08);
+}
+
+/* --- Grouped Messages --- */
+.message-grouped {
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+    box-shadow: 0 1px 4px #0001;
 }
 
 /* --- Settings Button Focus (Accessibility) --- */
@@ -1161,5 +1191,40 @@ body:not(.light-mode) .search-result-snippet {
     z-index: 10;
     box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* --- Scroll to Bottom Button --- */
+.scroll-to-bottom-btn {
+  position: fixed;
+  right: 32px;
+  bottom: 100px;
+  z-index: 1200;
+  background: #4f8cff;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 1.7em;
+  box-shadow: 0 4px 16px #4f8cff33, 0 2px 8px #0002;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.scroll-to-bottom-btn:hover {
+  background: #0056b3;
+  box-shadow: 0 6px 24px #4f8cff55;
+  transform: scale(1.08);
+}
+@media (max-width: 600px) {
+  .scroll-to-bottom-btn {
+    right: 12px;
+    bottom: 80px;
+    width: 38px;
+    height: 38px;
+    font-size: 1.3em;
   }
 } 

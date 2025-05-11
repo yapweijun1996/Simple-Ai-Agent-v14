@@ -69,6 +69,30 @@ const UIController = (function() {
 
         // Show empty state on init
         showEmptyState();
+        // Add scroll-to-bottom button
+        setupScrollToBottomButton();
+    }
+
+    // Floating scroll-to-bottom button logic
+    function setupScrollToBottomButton() {
+        const chatWindow = document.getElementById('chat-window');
+        let btn = document.getElementById('scroll-to-bottom-btn');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'scroll-to-bottom-btn';
+            btn.className = 'scroll-to-bottom-btn';
+            btn.title = 'Scroll to latest message';
+            btn.innerHTML = '↓';
+            btn.style.display = 'none';
+            btn.addEventListener('click', function() {
+                chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+            });
+            chatWindow.parentElement.appendChild(btn);
+        }
+        chatWindow.addEventListener('scroll', function() {
+            const atBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 40;
+            btn.style.display = atBottom ? 'none' : 'block';
+        });
     }
 
     /**
@@ -394,7 +418,7 @@ const UIController = (function() {
             const empty = document.createElement('div');
             empty.className = 'empty-state';
             empty.setAttribute('aria-live', 'polite');
-            empty.textContent = 'Start the conversation!';
+            empty.innerHTML = '<div style="font-size:2.5em;">💬</div><div style="margin-top:10px;">Start a conversation with your AI assistant!<br><span style="font-size:0.95em;color:#888;">Ask anything, get instant answers.</span></div>';
             chatWindow.appendChild(empty);
         }
     }
