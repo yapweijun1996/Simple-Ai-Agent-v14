@@ -110,6 +110,18 @@ html, body {
     background: #fafafa;
     display: flex;
     flex-direction: column;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--container-bg);
+}
+
+.chat-app__window::-webkit-scrollbar {
+    width: 8px;
+    background: var(--container-bg);
+}
+
+.chat-app__window::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 8px;
 }
 
 /* Message Block */
@@ -118,7 +130,7 @@ html, body {
     align-items: flex-end;
     position: relative;
     padding: 0;
-    margin: 12px 0;
+    margin: 18px 0;
     max-width: 75%;
     border-radius: 18px;
     box-shadow: 0 2px 8px #0002;
@@ -259,10 +271,10 @@ body:not(.light-mode) .chat-app__message.ai-message {
 .settings-modal__content {
     background: var(--container-bg);
     padding: var(--space-lg);
-    border-radius: var(--radius-md);
+    border-radius: 18px;
     min-width: 300px;
-    box-shadow: var(--shadow-sm);
-    animation: fadeInModal 0.4s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 8px 32px #0003;
+    animation: fadeInModal 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .settings-modal__title {
@@ -456,6 +468,13 @@ body:not(.light-mode) .chat-app__message.ai-message {
         width: 100%; /* Make buttons full width */
         text-align: center;
         margin-top: var(--space-xs);
+    }
+    
+    .chat-app__avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 1.1em;
+        margin-right: 6px;
     }
 }
 
@@ -919,4 +938,50 @@ body:not(.light-mode) .chat-app__message.ai-message:hover {
     box-shadow: 0 4px 20px #4f8cff55;
     background: linear-gradient(135deg, #23272e 80%, #2a3140 100%);
     border-color: #4f8cff;
+}
+
+/* --- Avatar Styles --- */
+.chat-app__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-right: 10px;
+    margin-left: 0;
+    border-radius: 50%;
+    background: rgba(80, 80, 80, 0.08);
+    font-size: 1.5em;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px #0001;
+}
+.chat-app__message.user-message .chat-app__avatar {
+    background: linear-gradient(135deg, #b6e2c6 60%, #4caf50 100%);
+    color: #1a3a2a;
+}
+.chat-app__message.ai-message .chat-app__avatar {
+    background: linear-gradient(135deg, #b3d4fc 60%, #4f8cff 100%);
+    color: #22334a;
+}
+
+/* --- Fade-in Animation for Messages --- */
+.fade-in {
+    animation: fadeInMessage 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Improved Button Styles --- */
+button, .chat-app__send-button, .settings-modal__button {
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #0001;
+}
+button:focus, .chat-app__send-button:focus, .settings-modal__button:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* --- More Spacing for Messages --- */
+.chat-app__message {
+    margin: 18px 0;
+    padding-left: 0;
 } 
