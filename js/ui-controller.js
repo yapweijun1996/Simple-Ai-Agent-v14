@@ -102,16 +102,6 @@ const UIController = (function() {
         // Add fade-in animation
         messageElement.classList.add('fade-in');
         
-        // Set avatar
-        const avatarElement = messageElement.querySelector('.chat-app__avatar');
-        if (avatarElement) {
-            if (sender === 'user') {
-                avatarElement.innerHTML = '<span aria-label="User" title="You" style="font-size:1.5em;">🧑</span>';
-            } else {
-                avatarElement.innerHTML = '<span aria-label="AI" title="AI" style="font-size:1.5em;">🤖</span>';
-            }
-        }
-        
         // Set timestamp
         const timestampElement = messageElement.querySelector('.chat-app__timestamp');
         if (timestampElement) {
