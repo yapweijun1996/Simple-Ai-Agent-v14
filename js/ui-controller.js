@@ -291,17 +291,33 @@ const UIController = (function() {
         const chatWindow = document.getElementById('chat-window');
         const article = document.createElement('article');
         article.className = 'chat-app__message ai-message search-result';
-        article.innerHTML = `
-            <div class="chat-app__message-content" aria-label="Search result">
-                <strong><a href="${result.url}" target="_blank" rel="noopener noreferrer" tabindex="0">${Utils.escapeHtml(result.title)}</a></strong><br>
-                <small>${Utils.escapeHtml(result.url)}</small>
-                <p>${Utils.escapeHtml(result.snippet)}</p>
-                <button class="read-more-btn" aria-label="Read more from ${Utils.escapeHtml(result.title)}">Read More</button>
-            </div>
-        `;
-        const btn = article.querySelector('.read-more-btn');
-        btn.addEventListener('click', () => onReadMore(result.url));
+        // Improved card structure
+        const card = document.createElement('div');
+        card.className = 'search-result-card';
+        // Header with icon and link
+        const header = document.createElement('div');
+        header.className = 'search-result-header';
+        header.innerHTML = `<span class="search-result-icon" aria-hidden="true">🔍</span><a href="${result.url}" target="_blank" rel="noopener noreferrer" tabindex="0">${Utils.escapeHtml(result.title)}</a>`;
+        card.appendChild(header);
+        // URL
+        const urlDiv = document.createElement('div');
+        urlDiv.className = 'search-result-url';
+        urlDiv.innerHTML = `<a href="${result.url}" target="_blank" rel="noopener noreferrer" tabindex="0">${Utils.escapeHtml(result.url)}</a>`;
+        card.appendChild(urlDiv);
+        // Snippet
+        const snippetDiv = document.createElement('div');
+        snippetDiv.className = 'search-result-snippet';
+        snippetDiv.textContent = result.snippet;
+        card.appendChild(snippetDiv);
+        // Read More button
+        const btn = document.createElement('button');
+        btn.className = 'read-more-btn';
+        btn.setAttribute('aria-label', `Read more from ${Utils.escapeHtml(result.title)}`);
         btn.tabIndex = 0;
+        btn.textContent = 'Read More';
+        btn.addEventListener('click', () => onReadMore(result.url));
+        card.appendChild(btn);
+        article.appendChild(card);
         chatWindow.appendChild(article);
         article.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
