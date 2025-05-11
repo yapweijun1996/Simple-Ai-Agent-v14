@@ -127,6 +127,7 @@ html, body {
 /* Message Block */
 .chat-app__message {
     display: flex;
+    flex-direction: column;
     align-items: flex-end;
     position: relative;
     padding: 0;
@@ -183,6 +184,7 @@ body:not(.light-mode) .chat-app__message.ai-message {
 .chat-app__message-content {
     flex: 1;
     min-width: 0;
+    width: 100%;
     white-space: pre-wrap;
     word-break: break-word;
     font-size: 1.05rem;
@@ -588,16 +590,17 @@ body:not(.light-mode) .chat-app__message.ai-message {
 .chat-app__timestamp {
     font-size: 0.75rem;
     color: #aaa;
-    margin-left: 8px;
     align-self: flex-end;
+    margin-top: 4px;
+    position: static;
+    right: auto;
+    bottom: auto;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: right;
     white-space: nowrap;
-    position: absolute;
-    right: 16px;
-    bottom: 8px;
-    background: rgba(255,255,255,0.7);
-    padding: 2px 8px;
-    border-radius: 8px;
-    box-shadow: 0 1px 4px #0001;
 }
 body:not(.light-mode) .chat-app__timestamp {
     background: rgba(30,35,48,0.7);
