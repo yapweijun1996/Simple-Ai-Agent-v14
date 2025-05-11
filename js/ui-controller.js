@@ -365,25 +365,6 @@ const UIController = (function() {
         article.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
 
-    function addSummarizeButton(onClick) {
-        if (summarizeBtn) return; // Only one at a time
-        const chatWindow = document.getElementById('chat-window');
-        summarizeBtn = document.createElement('button');
-        summarizeBtn.className = 'summarize-btn';
-        summarizeBtn.textContent = 'Summarize';
-        summarizeBtn.setAttribute('aria-label', 'Summarize gathered information');
-        summarizeBtn.tabIndex = 0;
-        summarizeBtn.addEventListener('click', () => {
-            onClick();
-            if (summarizeBtn) {
-                summarizeBtn.remove();
-                summarizeBtn = null;
-            }
-        });
-        chatWindow.appendChild(summarizeBtn);
-        summarizeBtn.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }
-
     /**
      * Shows an empty state message in the chat window
      */
@@ -484,7 +465,6 @@ const UIController = (function() {
         addReadResult,
         showSpinner,
         hideSpinner,
-        addSummarizeButton,
         /**
          * Adds a chat bubble with raw HTML content (for tool results)
          * @param {string} sender - 'user' or 'ai'

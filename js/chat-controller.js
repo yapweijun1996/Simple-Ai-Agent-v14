@@ -107,7 +107,7 @@ Begin Reasoning Now:
                 // Collect snippets for summarization
                 state.readSnippets.push(snippet);
                 if (state.readSnippets.length >= 2) {
-                    UIController.addSummarizeButton(() => summarizeSnippets());
+                    await summarizeSnippets();
                 }
             } catch (err) {
                 UIController.hideSpinner();
