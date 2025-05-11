@@ -150,36 +150,6 @@ const UIController = (function() {
     }
 
     /**
-     * Formats text with highlighting for reasoning sections
-     * @param {string} text - The text to format
-     * @returns {string} - HTML formatted text
-     */
-    function formatTextWithReasoningHighlights(text) {
-        // Escape any HTML first
-        let escapedText = escapeHtml(text);
-        
-        // Replace newlines with <br> tags
-        let formattedText = escapedText.replace(/\n/g, '<br>');
-        
-        // Check for and highlight reasoning patterns
-        if (text.includes('Thinking:') && text.includes('Answer:')) {
-            // Split into thinking and answer sections
-            const thinkingMatch = text.match(/Thinking:(.*?)(?=Answer:|$)/s);
-            const answerMatch = text.match(/Answer:(.*?)$/s);
-            
-            if (thinkingMatch && answerMatch) {
-                const thinkingContent = escapeHtml(thinkingMatch[1].trim());
-                const answerContent = escapeHtml(answerMatch[1].trim());
-                
-                formattedText = `<div class="thinking-section"><strong>Thinking:</strong><br>${thinkingContent.replace(/\n/g, '<br>')}</div>
-                                <div class="answer-section"><strong>Answer:</strong><br>${answerContent.replace(/\n/g, '<br>')}</div>`;
-            }
-        }
-        
-        return formattedText;
-    }
-    
-    /**
      * Safely escapes HTML
      * @param {string} html - The string to escape
      * @returns {string} - Escaped HTML string
@@ -210,7 +180,7 @@ const UIController = (function() {
                 if (!insideCode) {
                     // Start of code block
                     if (currentText) {
-                        formatted += `<div>${formatTextWithReasoningHighlights(currentText)}</div>`;
+                        formatted += `<div>${formatMessageContent(currentText)}</div>`;
                         currentText = '';
                     }
                     
@@ -233,7 +203,7 @@ const UIController = (function() {
         
         // Add any remaining text
         if (currentText) {
-            formatted += formatTextWithReasoningHighlights(currentText);
+            formatted += formatMessageContent(currentText);
         }
         
         return formatted;
