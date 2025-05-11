@@ -25,18 +25,27 @@ const UIController = (function() {
         
         // Add enter key handler for message input
         const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        // Keyboard shortcut: Enter to send, Shift+Enter for newline
         messageInput.addEventListener('keydown', function(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
                 if (sendMessageCallback) sendMessageCallback();
             }
         });
-        
         // Auto-resize textarea as user types
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+            // Enable/disable send button based on input
+            if (sendButton) {
+                sendButton.disabled = this.value.trim().length === 0;
+            }
         });
+        // Set initial state of send button
+        if (sendButton) {
+            sendButton.disabled = messageInput.value.trim().length === 0;
+        }
         
         // Add global event delegation for thinking toggle buttons
         document.addEventListener('click', function(event) {

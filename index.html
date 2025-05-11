@@ -85,33 +85,33 @@
                 <h3 class="settings-modal__title">Settings</h3>
                 <div class="settings-modal__item">
                     <label for="model-select" class="settings-modal__label">AI Model:</label>
-                    <select id="model-select" class="chat-app__model-select settings-modal__select" aria-label="Select AI Model">
-                        <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
-                        <option value="gpt-4.1-nano">GPT-4.1 Nano</option>
-                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                        <option value="gemma-3-27b-it">Gemma 3-27b IT</option>
+                    <select id="model-select" class="chat-app__model-select settings-modal__select" aria-label="Select AI Model" title="Choose which AI model to use. Different models may have different capabilities and speeds.">
+                        <option value="gpt-4.1-mini" title="GPT-4.1 Mini: Fast, good for general tasks">GPT-4.1 Mini</option>
+                        <option value="gpt-4.1-nano" title="GPT-4.1 Nano: Very fast, lower cost, basic tasks">GPT-4.1 Nano</option>
+                        <option value="gemini-2.0-flash" title="Gemini 2.0 Flash: Google model, fast and capable">Gemini 2.0 Flash</option>
+                        <option value="gemma-3-27b-it" title="Gemma 3-27b IT: Open-source, strong reasoning">Gemma 3-27b IT</option>
                     </select>
                 </div>
                 <div class="settings-modal__item">
-                    <label for="streaming-toggle" class="settings-modal__label">
+                    <label for="streaming-toggle" class="settings-modal__label" title="If enabled, responses will appear as they are generated, instead of all at once.">
                         <input type="checkbox" id="streaming-toggle" class="settings-modal__checkbox">
                         Stream responses
                     </label>
                 </div>
                 <div class="settings-modal__item">
-                    <label for="cot-toggle" class="settings-modal__label">
+                    <label for="cot-toggle" class="settings-modal__label" title="Enable step-by-step reasoning for more complex answers.">
                         <input type="checkbox" id="cot-toggle" class="settings-modal__checkbox">
                         Enable Chain of Thought reasoning
                     </label>
                 </div>
                 <div class="settings-modal__item">
-                    <label for="show-thinking-toggle" class="settings-modal__label">
+                    <label for="show-thinking-toggle" class="settings-modal__label" title="Show the AI's intermediate thinking process in the chat.">
                         <input type="checkbox" id="show-thinking-toggle" class="settings-modal__checkbox">
                         Show AI thinking process
                     </label>
                 </div>
                 <div class="settings-modal__item">
-                    <label for="dark-mode-toggle" class="settings-modal__label">
+                    <label for="dark-mode-toggle" class="settings-modal__label" title="Switch between light and dark mode for better visibility.">
                         <input type="checkbox" id="dark-mode-toggle" class="settings-modal__checkbox">
                         Dark mode
                     </label>
