@@ -106,10 +106,7 @@ Begin Reasoning Now:
                 state.chatHistory.push({ role: 'assistant', content: plainTextSnippet });
                 // Collect snippets for summarization
                 state.readSnippets.push(snippet);
-                // Only auto-summarize if NOT in autoReadInProgress (i.e., manual read)
-                if (!state.autoReadInProgress && state.readSnippets.length >= 2) {
-                    await summarizeSnippets();
-                }
+                // (Manual summarization removed: summarization now only happens in auto-read workflow)
             } catch (err) {
                 UIController.hideSpinner();
                 UIController.addMessage('ai', `Read URL failed: ${err.message}`);

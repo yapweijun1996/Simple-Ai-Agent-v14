@@ -348,14 +348,6 @@ const UIController = (function() {
         snippetDiv.className = 'search-result-snippet';
         snippetDiv.textContent = result.snippet;
         card.appendChild(snippetDiv);
-        // Read More button
-        const btn = document.createElement('button');
-        btn.className = 'read-more-btn';
-        btn.setAttribute('aria-label', `Read more from ${Utils.escapeHtml(result.title)}`);
-        btn.tabIndex = 0;
-        btn.textContent = 'Read More';
-        btn.addEventListener('click', () => onReadMore(result.url));
-        card.appendChild(btn);
         article.appendChild(card);
         chatWindow.appendChild(article);
         article.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -386,19 +378,6 @@ const UIController = (function() {
         snippetDiv.textContent = snippet + (hasMore ? '...' : '');
         if (snippet.length > 600 || hasMore) snippetDiv.classList.add('faded');
         card.appendChild(snippetDiv);
-        // Read More button
-        if (hasMore) {
-            const btn = document.createElement('button');
-            btn.className = 'read-more-btn';
-            btn.setAttribute('aria-label', 'Read more from this page');
-            btn.tabIndex = 0;
-            btn.textContent = 'Read More';
-            btn.addEventListener('click', () => {
-                const offset = urlOffsets.get(url) || snippet.length;
-                ChatController.processToolCall({ tool: 'read_url', arguments: { url, start: offset, length: 2000 } });
-            });
-            card.appendChild(btn);
-        }
         article.appendChild(card);
         chatWindow.appendChild(article);
         article.scrollIntoView({ behavior: 'smooth', block: 'end' });
