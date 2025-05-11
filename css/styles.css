@@ -1,0 +1,861 @@
+/* ===================================================================
+   Simple AI Chat Agent
+   Refactored with BEM naming, semantic grouping, and CSS custom props
+   =================================================================== */
+
+/* -- Variables ------------------------------------------------------- */
+:root {
+    --primary-color: #4f8cff;
+    --danger-color: #ff5c5c;
+    --text-color: #eaeaea;
+    --text-light-color: #b0b0b0;
+    --bg-color: #181c20;
+    --container-bg: #23272e;
+    --border-color: #2c313a;
+    --user-msg-bg: #223c2e;
+    --ai-msg-bg: #23272e;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 10px;
+    --space-lg: 20px;
+    --font-sm: 0.9rem;
+    --font-md: 1rem;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --max-width: 100vw;
+}
+
+body.light-mode {
+    --primary-color: #007bff;
+    --danger-color: #dc3545;
+    --text-color: #333;
+    --text-light-color: #666;
+    --bg-color: #f5f5f5;
+    --container-bg: #fff;
+    --border-color: #ddd;
+    --user-msg-bg: #dcf8c6;
+    --ai-msg-bg: #f1f0f0;
+}
+
+/* -- Base Styles ----------------------------------------------------- */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    overflow: hidden;
+}
+
+/* Focus styles for better accessibility */
+:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* -- Chat App Container ---------------------------------------------- */
+.chat-app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: var(--max-width);
+    height: 100%;
+    margin: 0 auto;
+    border: 1px solid var(--border-color);
+    background: var(--container-bg);
+}
+
+/* -- Header Component ------------------------------------------------ */
+.chat-app__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chat-app__header-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.chat-app__settings-button {
+    margin-left: var(--space-md);
+    font-size: var(--font-sm);
+    padding: var(--space-xs) var(--space-sm);
+    cursor: pointer;
+    background: var(--container-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+/* -- Token Usage Component ------------------------------------------- */
+.chat-app__token-usage {
+    padding: var(--space-xs) var(--space-md);
+    font-size: var(--font-sm);
+    text-align: center;
+    color: var(--text-light-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* -- Messages Component --------------------------------------------- */
+.chat-app__window {
+    flex: 1;
+    padding: var(--space-md);
+    padding-bottom: 80px; /* reserve space below for fixed input */
+    overflow-y: auto;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Message Block */
+.chat-app__message {
+    display: flex;
+    align-items: flex-end;
+    position: relative;
+    padding-left: 8px;
+    animation: fadeInMessage 0.4s ease;
+}
+
+/* Keep compatibility with existing JS references */
+.message {
+    display: none; /* Hide original style, but keep for JS compatibility */
+}
+
+/* User vs AI styling */
+.chat-app__message.user-message {
+    background: var(--user-msg-bg);
+    align-self: flex-end;
+    text-align: left;
+}
+
+.chat-app__message.ai-message {
+    background: var(--ai-msg-bg);
+    align-self: flex-start;
+    text-align: left;
+}
+
+.chat-app__message-content {
+    flex: 1;
+    min-width: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Keep compatibility with existing JS */
+.message-content {
+    display: none; /* Hide original style, but keep for JS compatibility */
+}
+
+/* -- Controls Component ---------------------------------------------- */
+.chat-app__controls {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--max-width);
+    display: flex;
+    border-top: 1px solid var(--border-color);
+    background: var(--container-bg);
+    padding: var(--space-md);
+    box-sizing: border-box;
+    z-index: 1000;
+}
+
+.chat-app__message-input {
+    flex: 1;
+    border: none;
+    padding: var(--space-md);
+    font-size: var(--font-md);
+    resize: none;
+    outline: none;
+}
+
+.chat-app__send-button {
+    border: none;
+    background: var(--primary-color);
+    color: white;
+    padding: 0 var(--space-lg);
+    font-size: var(--font-md);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+}
+
+.chat-app__send-button:hover {
+    background-color: #0056b3; /* Darker shade of primary */
+}
+
+.chat-app__send-button:active {
+    background-color: #004085; /* Even darker shade when active */
+}
+
+.chat-app__model-select {
+    margin-right: var(--space-md);
+    font-size: var(--font-md);
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.chat-app__model-select:hover {
+    border-color: var(--primary-color);
+}
+
+/* -- Settings Modal ------------------------------------------------- */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+/* Keep compatibility with old .modal for JS */
+.modal {
+    display: none; /* Hide original style, but keep for JS compatibility */
+}
+
+.settings-modal__content {
+    background: var(--container-bg);
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
+    min-width: 300px;
+    box-shadow: var(--shadow-sm);
+    animation: fadeInModal 0.4s cubic-bezier(.4,0,.2,1);
+}
+
+.settings-modal__title {
+    margin-top: 0;
+    margin-bottom: var(--space-md);
+    font-size: 1.1rem;
+}
+
+.settings-modal__item {
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.settings-modal__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.settings-modal__checkbox {
+    margin-right: var(--space-sm);
+}
+
+.settings-modal__select {
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    flex-grow: 1;
+    margin-left: var(--space-md);
+}
+
+.settings-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+}
+
+.settings-modal__button {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-color);
+    background: var(--container-bg);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.settings-modal__button:hover {
+    background-color: #f0f0f0;
+}
+
+.settings-modal__button:active {
+    background-color: #e0e0e0;
+}
+
+.settings-modal__button--primary {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.settings-modal__button--primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.settings-modal__button--primary:active {
+    background-color: #004085;
+    border-color: #004085;
+}
+
+/* Keep compatibility with old settings classes for JS */
+.setting-item, .setting-label, .setting-checkbox,
+.modal-content, .modal-actions, .modal-button {
+    display: none; /* Hide original styles, but keep for JS compatibility */
+}
+
+/* -- Thinking & Answer Formatting ---------------------------------- */
+.thinking-indicator {
+    color: #888;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+}
+
+.thinking-indicator::before {
+    content: "🤔";
+    margin-right: 5px;
+}
+
+/* Chain‑of‑Thought block */
+.thinking-section {
+    background-color: #f0f7ff;
+    border-left: 3px solid #2196F3;
+    padding: 12px;
+    margin-bottom: 12px;
+    font-style: italic;
+    color: #444;
+    border-radius: 4px;
+}
+
+.thinking-section strong {
+    color: #2196F3;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Answer block */
+.answer-section {
+    background-color: #f0fff0;
+    border-left: 3px solid #4CAF50;
+    padding: 12px;
+    font-weight: 500;
+    border-radius: 4px;
+}
+
+.answer-section strong {
+    color: #4CAF50;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Toggle button for collapsing thinking */
+.toggle-thinking {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.toggle-thinking:hover {
+    background-color: #f0f0f0;
+}
+
+.toggle-thinking::before {
+    content: "🧠";
+    margin-right: 4px;
+}
+
+/* When thinking is collapsed */
+.thinking-collapsed .thinking-section {
+    display: none;
+}
+
+/* Expand/collapse indicator */
+.toggle-thinking[data-expanded="true"]::after {
+    content: "▼";
+    font-size: 0.7em;
+    margin-left: 4px;
+}
+
+.toggle-thinking[data-expanded="false"]::after {
+    content: "►";
+    font-size: 0.7em;
+    margin-left: 4px;
+}
+
+/* -- Responsive Adjustments ---------------------------------------- */
+@media (max-width: 480px) {
+    .chat-app__send-button {
+        padding: 0 var(--space-md);
+    }
+    
+    .chat-app__message {
+        max-width: 90%;
+    }
+    
+    .settings-modal__content {
+        min-width: 0; /* Remove min-width */
+        width: 90%; /* Use percentage width */
+        padding: var(--space-md); /* Reduce padding */
+    }
+    
+    .settings-modal__actions {
+        flex-direction: column; /* Stack buttons vertically on mobile */
+        gap: var(--space-sm);
+    }
+    
+    .settings-modal__button {
+        width: 100%; /* Make buttons full width */
+        text-align: center;
+        margin-top: var(--space-xs);
+    }
+}
+
+@media (max-width: 360px) {
+    .chat-app__controls {
+        flex-wrap: wrap;
+        padding: var(--space-sm);
+    }
+    
+    .chat-app__model-select {
+        margin-right: 0;
+        margin-bottom: var(--space-sm);
+        width: 100%;
+    }
+}
+
+/* Status Bar for AI status messages */
+.chat-app__status-bar {
+    position: fixed;
+    bottom: 58px; /* place above the controls */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--max-width);
+    background: linear-gradient(90deg, #eaf3ff 0%, #f5faff 100%);
+    padding: var(--space-sm) var(--space-md);
+    box-sizing: border-box;
+    text-align: center;
+    font-size: var(--font-sm);
+    color: var(--text-light-color);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 1000;
+    visibility: hidden;
+    box-shadow: 0 2px 8px #007bff11;
+    transition: background 0.3s;
+}
+
+/* Tool result styling */
+.tool-result {
+    background: #eef6fb;
+    border: 1px solid #b3d4fc;
+    padding: var(--space-sm) var(--space-md);
+    margin: var(--space-sm) 0;
+    border-radius: var(--radius-sm);
+}
+
+.tool-result strong {
+    display: block;
+    margin-bottom: var(--space-xs);
+}
+
+.tool-result ul {
+    list-style-type: disc;
+    padding-left: var(--space-lg);
+    margin: var(--space-xs) 0;
+}
+
+.tool-result ul li {
+    margin-bottom: var(--space-sm);
+}
+
+.tool-result a {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.tool-result a:hover {
+    color: #0056b3;
+}
+
+.ai-suggested {
+  border: 2px solid #4f8cff;
+  background: #eaf3ff;
+  box-shadow: 0 0 8px #4f8cff33;
+  position: relative;
+}
+.ai-suggested::before {
+  content: "★ AI Suggests";
+  color: #fff;
+  background: #4f8cff;
+  font-size: 0.8em;
+  padding: 2px 8px;
+  border-radius: 0 0 8px 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+.spinner {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  border: 3px solid var(--primary-color);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Optionally, pulse the spinner for extra feedback */
+.spinner {
+  box-shadow: 0 0 0 0 rgba(0,123,255,0.3);
+  animation: spin 0.8s linear infinite, pulse 1.2s infinite cubic-bezier(.66,0,0,1);
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(0,123,255,0.3); }
+  70% { box-shadow: 0 0 0 8px rgba(0,123,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,123,255,0); }
+}
+
+.chat-app__timestamp {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-left: 8px;
+    align-self: flex-end;
+    white-space: nowrap;
+    position: absolute;
+    right: 10px;
+    bottom: 6px;
+}
+
+@keyframes fadeInMessage {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+body.dark-mode, body.dark-mode .chat-app {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+body.dark-mode .chat-app__window {
+    background: #20232a !important;
+}
+
+body.dark-mode .chat-app__message.user-message {
+    background: var(--user-msg-bg);
+}
+
+body.dark-mode .chat-app__message.ai-message {
+    background: var(--ai-msg-bg);
+}
+
+body.dark-mode .chat-app__controls,
+body.dark-mode .chat-app__header,
+body.dark-mode .chat-app__token-usage {
+    background: var(--container-bg);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .settings-modal__content {
+    background: var(--container-bg);
+    color: var(--text-color);
+}
+
+body.dark-mode .settings-modal__button {
+    background: var(--container-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .settings-modal__button--primary {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+body.dark-mode .chat-app__status-bar {
+    background: linear-gradient(90deg, #23272e 0%, #181c20 100%);
+    color: var(--text-light-color);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+body.dark-mode .tool-result {
+    background: #23272e;
+    border: 1px solid #4f8cff44;
+}
+
+body.dark-mode .ai-suggested {
+    border-color: #4f8cff;
+    background: #23272e;
+    box-shadow: 0 0 8px #4f8cff33;
+}
+
+body.dark-mode .ai-suggested::before {
+    background: #4f8cff;
+}
+
+body:not(.light-mode) .answer-section {
+    background-color: #1e2d1e;
+    border-left: 3px solid #4caf80;
+    color: #eaffea;
+}
+body:not(.light-mode) .answer-section strong {
+    color: #4caf80;
+}
+
+body:not(.light-mode) .thinking-section {
+    background-color: #1e2330;
+    border-left: 3px solid #2196f3;
+    color: #eaf3ff;
+}
+body:not(.light-mode) .thinking-section strong {
+    color: #4faaff;
+}
+
+body:not(.light-mode) .chat-app__timestamp {
+    color: #b0b0b0;
+}
+
+body:not(.light-mode) .chat-app__message {
+    box-shadow: 0 2px 8px #0006;
+}
+
+body:not(.light-mode) .chat-app__message-input {
+    background: #23272e;
+    color: #eaeaea;
+    border: 1px solid #2c313a;
+}
+body:not(.light-mode) .chat-app__message-input:focus {
+    border-color: #4f8cff;
+    box-shadow: 0 0 0 2px #4f8cff55;
+}
+
+body:not(.light-mode) .chat-app__send-button {
+    background: #4f8cff;
+    color: #fff;
+    border: 1px solid #4f8cff;
+    box-shadow: 0 2px 8px #4f8cff22;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+body:not(.light-mode) .chat-app__send-button:hover,
+body:not(.light-mode) .chat-app__send-button:focus {
+    background: #6faaff;
+    border-color: #6faaff;
+    box-shadow: 0 0 8px #4f8cff88;
+}
+
+body:not(.light-mode) pre, body:not(.light-mode) code {
+    background: #23272e !important;
+    color: #eaffea !important;
+    border-radius: 4px;
+}
+
+body:not(.light-mode) a {
+    color: #4faaff;
+}
+body:not(.light-mode) a:hover {
+    color: #82cfff;
+}
+
+/* ===================== DARK MODE POLISH ===================== */
+
+/* 1. Use variables for all backgrounds, borders, and text in dark mode */
+body:not(.light-mode) {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+body:not(.light-mode) .chat-app,
+body:not(.light-mode) .chat-app__window,
+body:not(.light-mode) .settings-modal__content {
+    background: var(--container-bg) !important;
+    color: var(--text-color);
+}
+body:not(.light-mode) .chat-app__window {
+    background: #20232a !important;
+}
+body:not(.light-mode) .chat-app__message.user-message {
+    background: var(--user-msg-bg);
+}
+body:not(.light-mode) .chat-app__message.ai-message {
+    background: var(--ai-msg-bg);
+}
+body:not(.light-mode) .chat-app__controls,
+body:not(.light-mode) .chat-app__header,
+body:not(.light-mode) .chat-app__token-usage {
+    background: var(--container-bg);
+    border-color: var(--border-color);
+}
+body:not(.light-mode) .settings-modal__button {
+    background: var(--container-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+body:not(.light-mode) .settings-modal__button--primary {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+body:not(.light-mode) .chat-app__status-bar {
+    background: linear-gradient(90deg, #23272e 0%, #181c20 100%);
+    color: var(--text-light-color);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+body:not(.light-mode) .tool-result {
+    background: #23272e;
+    border: 1px solid #4f8cff44;
+}
+body:not(.light-mode) .ai-suggested {
+    border-color: #4f8cff;
+    background: #23272e;
+    box-shadow: 0 0 8px #4f8cff33;
+}
+body:not(.light-mode) .ai-suggested::before {
+    background: #4f8cff;
+}
+
+/* 2. Improve contrast and readability for answer/thinking/code blocks */
+body:not(.light-mode) .answer-section {
+    background-color: #1e2d1e;
+    border-left: 3px solid #4caf80;
+    color: #eaffea;
+}
+body:not(.light-mode) .answer-section strong {
+    color: #4caf80;
+}
+body:not(.light-mode) .thinking-section {
+    background-color: #1e2330;
+    border-left: 3px solid #2196f3;
+    color: #eaf3ff;
+}
+body:not(.light-mode) .thinking-section strong {
+    color: #4faaff;
+}
+body:not(.light-mode) pre, body:not(.light-mode) code {
+    background: #23272e !important;
+    color: #eaffea !important;
+    border-radius: 4px;
+}
+
+/* 3. Timestamps and message shadows for clarity */
+body:not(.light-mode) .chat-app__timestamp {
+    color: #b0b0b0;
+}
+body:not(.light-mode) .chat-app__message {
+    box-shadow: 0 2px 8px #0006;
+}
+
+/* 4. Inputs and buttons: backgrounds, borders, and interactive states */
+body:not(.light-mode) .chat-app__message-input {
+    background: #23272e;
+    color: #eaeaea;
+    border: 1px solid #2c313a;
+}
+body:not(.light-mode) .chat-app__message-input:focus {
+    border-color: #4f8cff;
+    box-shadow: 0 0 0 2px #4f8cff55;
+}
+body:not(.light-mode) .chat-app__send-button {
+    background: #4f8cff;
+    color: #fff;
+    border: 1px solid #4f8cff;
+    box-shadow: 0 2px 8px #4f8cff22;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+body:not(.light-mode) .chat-app__send-button:hover,
+body:not(.light-mode) .chat-app__send-button:focus {
+    background: #6faaff;
+    border-color: #6faaff;
+    box-shadow: 0 0 8px #4f8cff88;
+}
+
+/* 5. Links: readable and accessible */
+body:not(.light-mode) a {
+    color: #4faaff;
+}
+body:not(.light-mode) a:hover {
+    color: #82cfff;
+}
+
+/* 6. Remove redundant .dark-mode selectors (use only body:not(.light-mode)) */
+body.dark-mode, body.dark-mode .chat-app,
+body.dark-mode .chat-app__window,
+body.dark-mode .chat-app__message.user-message,
+body.dark-mode .chat-app__message.ai-message,
+body.dark-mode .chat-app__controls,
+body.dark-mode .chat-app__header,
+body.dark-mode .chat-app__token-usage,
+body.dark-mode .settings-modal__content,
+body.dark-mode .settings-modal__button,
+body.dark-mode .settings-modal__button--primary,
+body.dark-mode .chat-app__status-bar,
+body.dark-mode .tool-result,
+body.dark-mode .ai-suggested,
+body.dark-mode .ai-suggested::before {
+    /* Remove: replaced by body:not(.light-mode) above */
+}
+
+/* --- Settings Button: Dark Mode Fix --- */
+body:not(.light-mode) .chat-app__settings-button {
+    background: #23272e;
+    color: #eaeaea;
+    border: 1px solid #4f8cff;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+body:not(.light-mode) .chat-app__settings-button:hover,
+body:not(.light-mode) .chat-app__settings-button:focus {
+    background: #2d3542;
+    color: #fff;
+    border-color: #6faaff;
+    box-shadow: 0 0 0 2px #4f8cff55;
+}
+
+/* --- Empty State Message --- */
+.empty-state {
+    text-align: center;
+    color: var(--text-light-color);
+    font-size: 1.1rem;
+    margin: 40px 0;
+    opacity: 0.7;
+    letter-spacing: 0.02em;
+    animation: fadeInMessage 0.6s;
+}
+
+/* --- Settings Button Focus (Accessibility) --- */
+.chat-app__settings-button:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    z-index: 2;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; transform: scale(0.96) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+} 
