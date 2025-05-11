@@ -7,26 +7,25 @@ const ChatController = (function() {
     'use strict';
 
     // Private state
-    let chatHistory = [];
-    let totalTokens = 0;
-    let settings = { streaming: false, enableCoT: false, showThinking: true };
-    let isThinking = false;
-    let lastThinkingContent = '';
-    let lastAnswerContent = '';
-    let readSnippets = [];
-    let lastToolCall = null;
-    let lastToolCallCount = 0;
-    const MAX_TOOL_CALL_REPEAT = 3;
-    let lastSearchResults = [];
-    let autoReadInProgress = false;
-    let toolCallHistory = [];
-    let highlightedResultIndices = new Set();
-    // Add a cache for read_url results
-    const readCache = new Map();
-    // Store the original user question for use in final answer synthesis
-    let originalUserQuestion = '';
-    // Add a flag to control tool workflow
-    let toolWorkflowActive = true;
+    const state = {
+        chatHistory: [],
+        totalTokens: 0,
+        settings: { streaming: false, enableCoT: false, showThinking: true },
+        isThinking: false,
+        lastThinkingContent: '',
+        lastAnswerContent: '',
+        readSnippets: [],
+        lastToolCall: null,
+        lastToolCallCount: 0,
+        MAX_TOOL_CALL_REPEAT: 3,
+        lastSearchResults: [],
+        autoReadInProgress: false,
+        toolCallHistory: [],
+        highlightedResultIndices: new Set(),
+        readCache: new Map(),
+        originalUserQuestion: '',
+        toolWorkflowActive: true
+    };
 
     // Add helper to robustly extract JSON tool calls (handles markdown fences)
     function extractToolCall(text) {
@@ -71,20 +70,20 @@ Begin Reasoning Now:
                     const idx = streamed.length - 1;
                     UIController.addSearchResult(result, (url) => {
                         processToolCall({ tool: 'read_url', arguments: { url, start: 0, length: 1122 } });
-                    }, highlightedResultIndices.has(idx));
+                    }, state.highlightedResultIndices.has(idx));
                 }, engine);
                 if (!results.length) {
                     UIController.addMessage('ai', `No search results found for "${args.query}".`);
                 }
                 const plainTextResults = results.map((r, i) => `${i+1}. ${r.title} (${r.url}) - ${r.snippet}`).join('\n');
-                chatHistory.push({ role: 'assistant', content: `Search results for "${args.query}" (${results.length}):\n${plainTextResults}` });
-                lastSearchResults = results;
+                state.chatHistory.push({ role: 'assistant', content: `Search results for "${args.query}" (${results.length}):\n${plainTextResults}` });
+                state.lastSearchResults = results;
                 // Prompt AI to suggest which results to read
                 await suggestResultsToRead(results, args.query);
             } catch (err) {
                 UIController.hideSpinner();
                 UIController.addMessage('ai', `Web search failed: ${err.message}`);
-                chatHistory.push({ role: 'assistant', content: `Web search failed: ${err.message}` });
+                state.chatHistory.push({ role: 'assistant', content: `Web search failed: ${err.message}` });
             }
             UIController.hideSpinner();
             UIController.clearStatus();
@@ -104,16 +103,16 @@ Begin Reasoning Now:
                 const hasMore = (start + length) < String(result).length;
                 UIController.addReadResult(args.url, snippet, hasMore);
                 const plainTextSnippet = `Read content from ${args.url}:\n${snippet}${hasMore ? '...' : ''}`;
-                chatHistory.push({ role: 'assistant', content: plainTextSnippet });
+                state.chatHistory.push({ role: 'assistant', content: plainTextSnippet });
                 // Collect snippets for summarization
-                readSnippets.push(snippet);
-                if (readSnippets.length >= 2) {
+                state.readSnippets.push(snippet);
+                if (state.readSnippets.length >= 2) {
                     UIController.addSummarizeButton(() => summarizeSnippets());
                 }
             } catch (err) {
                 UIController.hideSpinner();
                 UIController.addMessage('ai', `Read URL failed: ${err.message}`);
-                chatHistory.push({ role: 'assistant', content: `Read URL failed: ${err.message}` });
+                state.chatHistory.push({ role: 'assistant', content: `Read URL failed: ${err.message}` });
             }
             UIController.hideSpinner();
             UIController.clearStatus();
@@ -128,11 +127,11 @@ Begin Reasoning Now:
                 const result = await ToolsService.instantAnswer(args.query);
                 const text = JSON.stringify(result, null, 2);
                 UIController.addMessage('ai', text);
-                chatHistory.push({ role: 'assistant', content: text });
+                state.chatHistory.push({ role: 'assistant', content: text });
             } catch (err) {
                 UIController.clearStatus();
                 UIController.addMessage('ai', `Instant answer failed: ${err.message}`);
-                chatHistory.push({ role: 'assistant', content: `Instant answer failed: ${err.message}` });
+                state.chatHistory.push({ role: 'assistant', content: `Instant answer failed: ${err.message}` });
             }
             UIController.clearStatus();
         }
@@ -144,7 +143,7 @@ Begin Reasoning Now:
      */
     function init(initialSettings) {
         // Reset and seed chatHistory with system tool instructions
-        chatHistory = [{
+        state.chatHistory = [{
             role: 'system',
             content: `You are an AI assistant with access to three external tools. You MUST use these tools to answer any question that requires up-to-date facts, statistics, or detailed content. Do NOT attempt to answer such questions from your own knowledge. The tools are:
 
@@ -177,7 +176,7 @@ A: {"tool":"instant_answer","arguments":{"query":"capital of France"}}
 If you understand, follow these instructions for every relevant question. Do NOT answer from your own knowledge if a tool call is needed. Wait for the tool result before continuing.`,
         }];
         if (initialSettings) {
-            settings = { ...settings, ...initialSettings };
+            state.settings = { ...state.settings, ...initialSettings };
         }
         
         // Set up event handlers through UI controller
@@ -189,16 +188,16 @@ If you understand, follow these instructions for every relevant question. Do NOT
      * @param {Object} newSettings - The new settings
      */
     function updateSettings(newSettings) {
-        settings = { ...settings, ...newSettings };
-        console.log('Chat settings updated:', settings);
+        state.settings = { ...state.settings, ...newSettings };
+        console.log('Chat settings updated:', state.settings);
     }
 
     /**
      * Clears the chat history and resets token count
      */
     function clearChat() {
-        chatHistory = [];
-        totalTokens = 0;
+        state.chatHistory = [];
+        state.totalTokens = 0;
         Utils.updateTokenDisplay(0);
     }
 
@@ -207,7 +206,7 @@ If you understand, follow these instructions for every relevant question. Do NOT
      * @returns {Object} - The current settings
      */
     function getSettings() {
-        return { ...settings };
+        return { ...state.settings };
     }
 
     /**
@@ -221,47 +220,31 @@ Thinking: [detailed reasoning process, exploring different angles and considerat
 Answer: [your final, concise answer based on the reasoning above]`;
     }
 
-    /**
-     * Processes the AI response to extract thinking and answer parts
-     * @param {string} response - The raw AI response
-     * @returns {Object} - Object with thinking and answer components
-     */
-    function processCoTResponse(response) {
-        console.log("processCoTResponse received:", response);
-        // Check if response follows the Thinking/Answer format
+    // 2. Merge processCoTResponse and processPartialCoTResponse into parseCoTResponse
+    function parseCoTResponse(response, isPartial = false) {
         const thinkingMatch = response.match(/Thinking:(.*?)(?=Answer:|$)/s);
         const answerMatch = response.match(/Answer:(.*?)$/s);
-        console.log("processCoTResponse: thinkingMatch", thinkingMatch, "answerMatch", answerMatch);
-        
         if (thinkingMatch && answerMatch) {
-            const thinking = thinkingMatch[1].trim();
-            const answer = answerMatch[1].trim();
-            
-            // Update the last known content
-            lastThinkingContent = thinking;
-            lastAnswerContent = answer;
-            
+            state.lastThinkingContent = thinkingMatch[1].trim();
+            state.lastAnswerContent = answerMatch[1].trim();
             return {
-                thinking: thinking,
-                answer: answer,
-                hasStructuredResponse: true
+                thinking: state.lastThinkingContent,
+                answer: state.lastAnswerContent,
+                hasStructuredResponse: true,
+                partial: isPartial,
+                stage: isPartial && !answerMatch[1].trim() ? 'thinking' : undefined
             };
         } else if (response.startsWith('Thinking:') && !response.includes('Answer:')) {
-            // Partial thinking (no answer yet)
-            const thinking = response.replace(/^Thinking:/, '').trim();
-            lastThinkingContent = thinking;
-            
+            state.lastThinkingContent = response.replace(/^Thinking:/, '').trim();
             return {
-                thinking: thinking,
-                answer: lastAnswerContent,
+                thinking: state.lastThinkingContent,
+                answer: state.lastAnswerContent,
                 hasStructuredResponse: true,
                 partial: true,
                 stage: 'thinking'
             };
         } else if (response.includes('Thinking:') && !thinkingMatch) {
-            // Malformed response (partial reasoning)
             const thinking = response.replace(/^.*?Thinking:/s, 'Thinking:');
-            
             return {
                 thinking: thinking.replace(/^Thinking:/, '').trim(),
                 answer: '',
@@ -269,52 +252,9 @@ Answer: [your final, concise answer based on the reasoning above]`;
                 partial: true
             };
         }
-        
-        // If not properly formatted, return the whole response as the answer
         return {
             thinking: '',
             answer: response,
-            hasStructuredResponse: false
-        };
-    }
-    
-    /**
-     * Extract and update partial CoT response during streaming
-     * @param {string} fullText - The current streamed text
-     * @returns {Object} - The processed response object
-     */
-    function processPartialCoTResponse(fullText) {
-        console.log("processPartialCoTResponse received:", fullText);
-        if (fullText.includes('Thinking:') && !fullText.includes('Answer:')) {
-            // Only thinking so far
-            const thinking = fullText.replace(/^.*?Thinking:/s, '').trim();
-            
-            return {
-                thinking: thinking,
-                answer: '',
-                hasStructuredResponse: true,
-                partial: true,
-                stage: 'thinking'
-            };
-        } else if (fullText.includes('Thinking:') && fullText.includes('Answer:')) {
-            // Both thinking and answer are present
-            const thinkingMatch = fullText.match(/Thinking:(.*?)(?=Answer:|$)/s);
-            const answerMatch = fullText.match(/Answer:(.*?)$/s);
-            
-            if (thinkingMatch && answerMatch) {
-                return {
-                    thinking: thinkingMatch[1].trim(),
-                    answer: answerMatch[1].trim(),
-                    hasStructuredResponse: true,
-                    partial: false
-                };
-            }
-        }
-        
-        // Default case - treat as normal text
-        return {
-            thinking: '',
-            answer: fullText,
             hasStructuredResponse: false
         };
     }
@@ -325,12 +265,12 @@ Answer: [your final, concise answer based on the reasoning above]`;
      * @returns {string} - The formatted response for display
      */
     function formatResponseForDisplay(processed) {
-        if (!settings.enableCoT || !processed.hasStructuredResponse) {
+        if (!state.settings.enableCoT || !processed.hasStructuredResponse) {
             return processed.answer;
         }
 
         // If showThinking is enabled, show both thinking and answer
-        if (settings.showThinking) {
+        if (state.settings.showThinking) {
             if (processed.partial && processed.stage === 'thinking') {
                 return `Thinking: ${processed.thinking}`;
             } else if (processed.partial) {
@@ -357,21 +297,21 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Helper: Prepare message for sending (CoT, etc.)
     function prepareMessage(message) {
-        return settings.enableCoT ? enhanceWithCoT(message) : message;
+        return state.settings.enableCoT ? enhanceWithCoT(message) : message;
     }
 
     // Refactored sendMessage
     async function sendMessage() {
         const message = UIController.getUserInput();
         if (!isValidUserInput(message)) return;
-        originalUserQuestion = message;
-        toolWorkflowActive = true;
+        state.originalUserQuestion = message;
+        state.toolWorkflowActive = true;
 
         UIController.showStatus('Sending message...');
         setInputState(false);
 
-        lastThinkingContent = '';
-        lastAnswerContent = '';
+        state.lastThinkingContent = '';
+        state.lastAnswerContent = '';
 
         UIController.addMessage('user', message);
         UIController.clearUserInput();
@@ -382,12 +322,12 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
         try {
             if (selectedModel.startsWith('gpt')) {
-                chatHistory.push({ role: 'user', content: enhancedMessage });
+                state.chatHistory.push({ role: 'user', content: enhancedMessage });
                 console.log("Sent enhanced message to GPT:", enhancedMessage);
                 await handleOpenAIMessage(selectedModel, enhancedMessage);
             } else if (selectedModel.startsWith('gemini') || selectedModel.startsWith('gemma')) {
-                if (chatHistory.length === 0) {
-                    chatHistory.push({ role: 'user', content: '' });
+                if (state.chatHistory.length === 0) {
+                    state.chatHistory.push({ role: 'user', content: '' });
                 }
                 await handleGeminiMessage(selectedModel, enhancedMessage);
             }
@@ -395,29 +335,29 @@ Answer: [your final, concise answer based on the reasoning above]`;
             console.error('Error sending message:', error);
             UIController.addMessage('ai', 'Error: ' + error.message);
         } finally {
-            Utils.updateTokenDisplay(totalTokens);
+            Utils.updateTokenDisplay(state.totalTokens);
             UIController.clearStatus();
             setInputState(true);
         }
     }
 
-    // Helper: Handle streaming OpenAI response
-    async function handleOpenAIStreaming(model, aiMsgElement) {
+    // 3. Extract shared helpers for streaming/non-streaming response handling
+    async function handleStreamingResponse({ model, aiMsgElement, streamFn, onToolCall }) {
         let streamedResponse = '';
         try {
-            if (settings.enableCoT) {
-                isThinking = true;
+            if (state.settings.enableCoT) {
+                state.isThinking = true;
                 UIController.updateMessageContent(aiMsgElement, '🤔 Thinking...');
             }
-            const fullReply = await ApiService.streamOpenAIRequest(
+            const fullReply = await streamFn(
                 model,
-                chatHistory,
+                state.chatHistory,
                 (chunk, fullText) => {
                     streamedResponse = fullText;
-                    if (settings.enableCoT) {
-                        const processed = processPartialCoTResponse(fullText);
-                        if (isThinking && fullText.includes('Answer:')) {
-                            isThinking = false;
+                    if (state.settings.enableCoT) {
+                        const processed = parseCoTResponse(fullText, true);
+                        if (state.isThinking && fullText.includes('Answer:')) {
+                            state.isThinking = false;
                         }
                         const displayText = formatResponseForDisplay(processed);
                         UIController.updateMessageContent(aiMsgElement, displayText);
@@ -428,60 +368,58 @@ Answer: [your final, concise answer based on the reasoning above]`;
             );
             const toolCall = extractToolCall(fullReply);
             if (toolCall && toolCall.tool && toolCall.arguments) {
-                await processToolCall(toolCall);
+                await onToolCall(toolCall);
                 return;
             }
-            if (settings.enableCoT) {
-                const processed = processCoTResponse(fullReply);
+            if (state.settings.enableCoT) {
+                const processed = parseCoTResponse(fullReply);
                 if (processed.thinking) {
                     console.log('AI Thinking:', processed.thinking);
                 }
                 const displayText = formatResponseForDisplay(processed);
                 UIController.updateMessageContent(aiMsgElement, displayText);
-                chatHistory.push({ role: 'assistant', content: fullReply });
+                state.chatHistory.push({ role: 'assistant', content: fullReply });
             } else {
-                chatHistory.push({ role: 'assistant', content: fullReply });
+                state.chatHistory.push({ role: 'assistant', content: fullReply });
             }
-            const tokenCount = await ApiService.getTokenUsage(model, chatHistory);
+            const tokenCount = await ApiService.getTokenUsage(model, state.chatHistory);
             if (tokenCount) {
-                totalTokens += tokenCount;
+                state.totalTokens += tokenCount;
             }
         } catch (err) {
             UIController.updateMessageContent(aiMsgElement, 'Error: ' + err.message);
             throw err;
         } finally {
-            isThinking = false;
+            state.isThinking = false;
         }
     }
 
-    // Helper: Handle non-streaming OpenAI response
-    async function handleOpenAINonStreaming(model) {
+    async function handleNonStreamingResponse({ model, requestFn, onToolCall }) {
         UIController.showStatus('Waiting for AI response...');
         try {
-            const result = await ApiService.sendOpenAIRequest(model, chatHistory);
+            const result = await requestFn(model, state.chatHistory);
             if (result.error) {
                 throw new Error(result.error.message);
             }
             if (result.usage && result.usage.total_tokens) {
-                totalTokens += result.usage.total_tokens;
+                state.totalTokens += result.usage.total_tokens;
             }
             const reply = result.choices[0].message.content;
-            console.log("GPT non-streaming reply:", reply);
             const toolCall = extractToolCall(reply);
             if (toolCall && toolCall.tool && toolCall.arguments) {
-                await processToolCall(toolCall);
+                await onToolCall(toolCall);
                 return;
             }
-            if (settings.enableCoT) {
-                const processed = processCoTResponse(reply);
+            if (state.settings.enableCoT) {
+                const processed = parseCoTResponse(reply);
                 if (processed.thinking) {
                     console.log('AI Thinking:', processed.thinking);
                 }
-                chatHistory.push({ role: 'assistant', content: reply });
+                state.chatHistory.push({ role: 'assistant', content: reply });
                 const displayText = formatResponseForDisplay(processed);
                 UIController.addMessage('ai', displayText);
             } else {
-                chatHistory.push({ role: 'assistant', content: reply });
+                state.chatHistory.push({ role: 'assistant', content: reply });
                 UIController.addMessage('ai', reply);
             }
         } catch (err) {
@@ -491,75 +429,27 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Refactored handleOpenAIMessage
     async function handleOpenAIMessage(model, message) {
-        if (settings.streaming) {
+        if (state.settings.streaming) {
             UIController.showStatus('Streaming response...');
             const aiMsgElement = UIController.createEmptyAIMessage();
-            await handleOpenAIStreaming(model, aiMsgElement);
+            await handleStreamingResponse({ model, aiMsgElement, streamFn: ApiService.streamOpenAIRequest, onToolCall: processToolCall });
         } else {
-            await handleOpenAINonStreaming(model);
+            await handleNonStreamingResponse({ model, requestFn: ApiService.sendOpenAIRequest, onToolCall: processToolCall });
         }
     }
 
     // Helper: Handle streaming Gemini response
     async function handleGeminiStreaming(model, message, aiMsgElement) {
-        let streamedResponse = '';
-        try {
-            if (settings.enableCoT) {
-                isThinking = true;
-                UIController.updateMessageContent(aiMsgElement, '🤔 Thinking...');
-            }
-            const fullReply = await ApiService.streamGeminiRequest(
-                model,
-                chatHistory,
-                (chunk, fullText) => {
-                    streamedResponse = fullText;
-                    if (settings.enableCoT) {
-                        const processed = processPartialCoTResponse(fullText);
-                        if (isThinking && fullText.includes('Answer:')) {
-                            isThinking = false;
-                        }
-                        const displayText = formatResponseForDisplay(processed);
-                        UIController.updateMessageContent(aiMsgElement, displayText);
-                    } else {
-                        UIController.updateMessageContent(aiMsgElement, fullText);
-                    }
-                }
-            );
-            const toolCall = extractToolCall(fullReply);
-            if (toolCall && toolCall.tool && toolCall.arguments) {
-                await processToolCall(toolCall);
-                return;
-            }
-            if (settings.enableCoT) {
-                const processed = processCoTResponse(fullReply);
-                if (processed.thinking) {
-                    console.log('AI Thinking:', processed.thinking);
-                }
-                const displayText = formatResponseForDisplay(processed);
-                UIController.updateMessageContent(aiMsgElement, displayText);
-                chatHistory.push({ role: 'assistant', content: fullReply });
-            } else {
-                chatHistory.push({ role: 'assistant', content: fullReply });
-            }
-            const tokenCount = await ApiService.getTokenUsage(model, chatHistory);
-            if (tokenCount) {
-                totalTokens += tokenCount;
-            }
-        } catch (err) {
-            UIController.updateMessageContent(aiMsgElement, 'Error: ' + err.message);
-            throw err;
-        } finally {
-            isThinking = false;
-        }
+        await handleStreamingResponse({ model, aiMsgElement, streamFn: ApiService.streamGeminiRequest, onToolCall: processToolCall });
     }
 
     // Helper: Handle non-streaming Gemini response
     async function handleGeminiNonStreaming(model, message) {
         try {
             const session = ApiService.createGeminiSession(model);
-            const result = await session.sendMessage(message, chatHistory);
+            const result = await session.sendMessage(message, state.chatHistory);
             if (result.usageMetadata && typeof result.usageMetadata.totalTokenCount === 'number') {
-                totalTokens += result.usageMetadata.totalTokenCount;
+                state.totalTokens += result.usageMetadata.totalTokenCount;
             }
             const candidate = result.candidates[0];
             let textResponse = '';
@@ -573,16 +463,16 @@ Answer: [your final, concise answer based on the reasoning above]`;
                 await processToolCall(toolCall);
                 return;
             }
-            if (settings.enableCoT) {
-                const processed = processCoTResponse(textResponse);
+            if (state.settings.enableCoT) {
+                const processed = parseCoTResponse(textResponse);
                 if (processed.thinking) {
                     console.log('AI Thinking:', processed.thinking);
                 }
-                chatHistory.push({ role: 'assistant', content: textResponse });
+                state.chatHistory.push({ role: 'assistant', content: textResponse });
                 const displayText = formatResponseForDisplay(processed);
                 UIController.addMessage('ai', displayText);
             } else {
-                chatHistory.push({ role: 'assistant', content: textResponse });
+                state.chatHistory.push({ role: 'assistant', content: textResponse });
                 UIController.addMessage('ai', textResponse);
             }
         } catch (err) {
@@ -592,8 +482,8 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Refactored handleGeminiMessage
     async function handleGeminiMessage(model, message) {
-        chatHistory.push({ role: 'user', content: message });
-        if (settings.streaming) {
+        state.chatHistory.push({ role: 'user', content: message });
+        if (state.settings.streaming) {
             const aiMsgElement = UIController.createEmptyAIMessage();
             await handleGeminiStreaming(model, message, aiMsgElement);
         } else {
@@ -603,26 +493,26 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Enhanced processToolCall using registry and validation
     async function processToolCall(call) {
-        if (!toolWorkflowActive) return;
+        if (!state.toolWorkflowActive) return;
         const { tool, arguments: args, skipContinue } = call;
         // Tool call loop protection
         const callSignature = JSON.stringify({ tool, args });
-        if (lastToolCall === callSignature) {
-            lastToolCallCount++;
+        if (state.lastToolCall === callSignature) {
+            state.lastToolCallCount++;
         } else {
-            lastToolCall = callSignature;
-            lastToolCallCount = 1;
+            state.lastToolCall = callSignature;
+            state.lastToolCallCount = 1;
         }
-        if (lastToolCallCount > MAX_TOOL_CALL_REPEAT) {
-            UIController.addMessage('ai', `Error: Tool call loop detected. The same tool call has been made more than ${MAX_TOOL_CALL_REPEAT} times in a row. Stopping to prevent infinite loop.`);
+        if (state.lastToolCallCount > state.MAX_TOOL_CALL_REPEAT) {
+            UIController.addMessage('ai', `Error: Tool call loop detected. The same tool call has been made more than ${state.MAX_TOOL_CALL_REPEAT} times in a row. Stopping to prevent infinite loop.`);
             return;
         }
         // Log tool call
-        toolCallHistory.push({ tool, args, timestamp: new Date().toISOString() });
+        state.toolCallHistory.push({ tool, args, timestamp: new Date().toISOString() });
         await toolHandlers[tool](args);
         // Only continue reasoning if the last AI reply was NOT a tool call
         if (!skipContinue) {
-            const lastEntry = chatHistory[chatHistory.length - 1];
+            const lastEntry = state.chatHistory[state.chatHistory.length - 1];
             let isToolCall = false;
             if (lastEntry && typeof lastEntry.content === 'string') {
                 try {
@@ -650,7 +540,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
      * @returns {Array} - The chat history
      */
     function getChatHistory() {
-        return [...chatHistory];
+        return [...state.chatHistory];
     }
 
     /**
@@ -658,7 +548,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
      * @returns {number} - The total tokens used
      */
     function getTotalTokens() {
-        return totalTokens;
+        return state.totalTokens;
     }
 
     // Helper: AI-driven deep reading for a URL
@@ -672,15 +562,15 @@ Answer: [your final, concise answer based on the reasoning above]`;
             // Check cache first
             const cacheKey = `${url}:${start}:${chunkSize}`;
             let snippet;
-            if (readCache.has(cacheKey)) {
-                snippet = readCache.get(cacheKey);
+            if (state.readCache.has(cacheKey)) {
+                snippet = state.readCache.get(cacheKey);
             } else {
                 await processToolCall({ tool: 'read_url', arguments: { url, start, length: chunkSize }, skipContinue: true });
                 // Find the last snippet added to chatHistory
-                const lastEntry = chatHistory[chatHistory.length - 1];
+                const lastEntry = state.chatHistory[state.chatHistory.length - 1];
                 if (lastEntry && typeof lastEntry.content === 'string' && lastEntry.content.startsWith('Read content from')) {
                     snippet = lastEntry.content.split('\n').slice(1).join('\n');
-                    readCache.set(cacheKey, snippet);
+                    state.readCache.set(cacheKey, snippet);
                 } else {
                     snippet = '';
                 }
@@ -718,19 +608,19 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Autonomous follow-up: after AI suggests which results to read, auto-read and summarize
     async function autoReadAndSummarizeFromSuggestion(aiReply) {
-        if (autoReadInProgress) return; // Prevent overlap
-        if (!lastSearchResults || !Array.isArray(lastSearchResults) || !lastSearchResults.length) return;
+        if (state.autoReadInProgress) return; // Prevent overlap
+        if (!state.lastSearchResults || !Array.isArray(state.lastSearchResults) || !state.lastSearchResults.length) return;
         // Parse numbers from AI reply (e.g., "3,5,7,9,10")
         const match = aiReply.match(/([\d, ]+)/);
         if (!match) return;
         const nums = match[1].split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
         if (!nums.length) return;
         // Store highlighted indices (0-based)
-        highlightedResultIndices = new Set(nums.map(n => n - 1));
+        state.highlightedResultIndices = new Set(nums.map(n => n - 1));
         // Map numbers to URLs (1-based index)
-        const urlsToRead = nums.map(n => lastSearchResults[n-1]?.url).filter(Boolean);
+        const urlsToRead = nums.map(n => state.lastSearchResults[n-1]?.url).filter(Boolean);
         if (!urlsToRead.length) return;
-        autoReadInProgress = true;
+        state.autoReadInProgress = true;
         try {
             for (let i = 0; i < urlsToRead.length; i++) {
                 const url = urlsToRead[i];
@@ -740,7 +630,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
             // After all reads, auto-summarize
             await summarizeSnippets();
         } finally {
-            autoReadInProgress = false;
+            state.autoReadInProgress = false;
         }
     }
 
@@ -804,7 +694,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Summarization logic (recursive, context-aware)
     async function summarizeSnippets(snippets = null, round = 1) {
-        if (!snippets) snippets = readSnippets;
+        if (!snippets) snippets = state.readSnippets;
         if (!snippets.length) return;
         const selectedModel = SettingsController.getSettings().selectedModel;
         const MAX_PROMPT_LENGTH = 5857; // chars, safe for most models
@@ -844,7 +734,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
             }
             UIController.hideSpinner();
             UIController.clearStatus();
-            readSnippets = [];
+            state.readSnippets = [];
             // Prompt for final answer after summary
             await synthesizeFinalAnswer(aiReply);
             return;
@@ -900,14 +790,14 @@ Answer: [your final, concise answer based on the reasoning above]`;
         }
         UIController.hideSpinner();
         UIController.clearStatus();
-        readSnippets = [];
+        state.readSnippets = [];
     }
 
     // Add synthesizeFinalAnswer helper
     async function synthesizeFinalAnswer(summaries) {
-        if (!summaries || !originalUserQuestion) return;
+        if (!summaries || !state.originalUserQuestion) return;
         const selectedModel = SettingsController.getSettings().selectedModel;
-        const prompt = `Based on the following summaries, provide a final, concise answer to the original question.\n\nSummaries:\n${summaries}\n\nOriginal question: ${originalUserQuestion}`;
+        const prompt = `Based on the following summaries, provide a final, concise answer to the original question.\n\nSummaries:\n${summaries}\n\nOriginal question: ${state.originalUserQuestion}`;
         try {
             let finalAnswer = '';
             if (selectedModel.startsWith('gpt')) {
@@ -934,10 +824,10 @@ Answer: [your final, concise answer based on the reasoning above]`;
                 UIController.addMessage('ai', `Final Answer:\n${finalAnswer}`);
             }
             // Stop tool workflow after final answer
-            toolWorkflowActive = false;
+            state.toolWorkflowActive = false;
         } catch (err) {
             UIController.addMessage('ai', `Final answer synthesis failed. Error: ${err && err.message ? err.message : err}`);
-            toolWorkflowActive = false;
+            state.toolWorkflowActive = false;
         }
     }
 
@@ -951,6 +841,6 @@ Answer: [your final, concise answer based on the reasoning above]`;
         getTotalTokens,
         clearChat,
         processToolCall,
-        getToolCallHistory: () => [...toolCallHistory],
+        getToolCallHistory: () => [...state.toolCallHistory],
     };
 })(); 

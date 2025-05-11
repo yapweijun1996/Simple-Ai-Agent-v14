@@ -136,47 +136,19 @@ const UIController = (function() {
      */
     function updateMessageContent(messageElement, text) {
         if (!messageElement) return;
-        
         const contentElement = messageElement.querySelector('.chat-app__message-content');
         if (!contentElement) return;
-        
         // Remove existing toggle button if present
         const existingToggle = messageElement.querySelector('.toggle-thinking');
-        if (existingToggle) {
-            existingToggle.remove();
-        }
-        
-        // Add thinking indicator if it's a thinking message
+        if (existingToggle) existingToggle.remove();
         if (text === '🤔 Thinking...') {
-            contentElement.className = 'chat-app__message-content thinking-indicator';
-            contentElement.textContent = 'Thinking...';
+            setThinkingIndicator(contentElement);
             return;
         }
-        
-        // Reset content element class
-        contentElement.className = 'chat-app__message-content';
-        
-        // Format code blocks and check for structured reasoning
-        if (text.includes('```')) {
-            // Render code blocks
-            contentElement.innerHTML = formatCodeBlocks(text);
-        } else {
-            // Apply regular text formatting
-            contentElement.innerHTML = formatTextWithReasoningHighlights(text);
-        }
-        
-        // Add toggle button for CoT responses if they have thinking
-        if (text.includes('Thinking:') && text.includes('Answer:') && messageElement.classList.contains('ai-message')) {
-            const toggleButton = document.createElement('button');
-            toggleButton.className = 'toggle-thinking';
-            toggleButton.textContent = 'Hide thinking';
-            toggleButton.setAttribute('data-expanded', 'true');
-            
-            // Add button after the content
-            contentElement.parentNode.insertBefore(toggleButton, contentElement.nextSibling);
-        }
+        setFormattedContent(contentElement, text);
+        addToggleButton(messageElement, text);
     }
-    
+
     /**
      * Formats text with highlighting for reasoning sections
      * @param {string} text - The text to format
@@ -446,6 +418,52 @@ const UIController = (function() {
                 bar.removeAttribute('role');
                 bar.removeAttribute('aria-live');
             }, 3000);
+        }
+    }
+
+    // Helper: Format message content (code blocks and CoT reasoning)
+    function formatMessageContent(text) {
+        // Escape HTML first
+        let escapedText = escapeHtml(text);
+        // Replace newlines with <br>
+        let formattedText = escapedText.replace(/\n/g, '<br>');
+        // Highlight CoT reasoning if present
+        if (text.includes('Thinking:') && text.includes('Answer:')) {
+            const thinkingMatch = text.match(/Thinking:(.*?)(?=Answer:|$)/s);
+            const answerMatch = text.match(/Answer:(.*?)$/s);
+            if (thinkingMatch && answerMatch) {
+                const thinkingContent = escapeHtml(thinkingMatch[1].trim());
+                const answerContent = escapeHtml(answerMatch[1].trim());
+                formattedText = `<div class="thinking-section"><strong>Thinking:</strong><br>${thinkingContent.replace(/\n/g, '<br>')}</div>\n<div class="answer-section"><strong>Answer:</strong><br>${answerContent.replace(/\n/g, '<br>')}</div>`;
+            }
+        }
+        // Format code blocks
+        if (text.includes('```')) {
+            formattedText = formatCodeBlocks(text);
+        }
+        return formattedText;
+    }
+
+    // Helper: Set thinking indicator
+    function setThinkingIndicator(contentElement) {
+        contentElement.className = 'chat-app__message-content thinking-indicator';
+        contentElement.textContent = 'Thinking...';
+    }
+
+    // Helper: Set formatted content
+    function setFormattedContent(contentElement, text) {
+        contentElement.className = 'chat-app__message-content';
+        contentElement.innerHTML = formatMessageContent(text);
+    }
+
+    // Helper: Add toggle button for CoT responses
+    function addToggleButton(messageElement, text) {
+        if (text.includes('Thinking:') && text.includes('Answer:') && messageElement.classList.contains('ai-message')) {
+            const toggleButton = document.createElement('button');
+            toggleButton.className = 'toggle-thinking';
+            toggleButton.textContent = 'Hide thinking';
+            toggleButton.setAttribute('data-expanded', 'true');
+            messageElement.querySelector('.chat-app__message-content').parentNode.insertBefore(toggleButton, messageElement.querySelector('.chat-app__message-content').nextSibling);
         }
     }
 
