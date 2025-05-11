@@ -1200,29 +1200,65 @@ body:not(.light-mode) .search-result-snippet {
   color: #fff;
   border: none;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  font-size: 1.7em;
+  width: 52px;
+  height: 52px;
+  font-size: 2em;
   box-shadow: 0 4px 16px #4f8cff33, 0 2px 8px #0002;
   cursor: pointer;
   display: none;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s, opacity 0.3s;
+  opacity: 0;
+  pointer-events: none;
+  outline: none;
 }
-.scroll-to-bottom-btn:hover {
+.scroll-to-bottom-btn[style*="display: block"] {
+  display: flex !important;
+  opacity: 1;
+  pointer-events: auto;
+  animation: fadeInMessage 0.4s;
+}
+.scroll-to-bottom-btn:hover, .scroll-to-bottom-btn:focus {
   background: #0056b3;
   box-shadow: 0 6px 24px #4f8cff55;
   transform: scale(1.08);
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.scroll-to-bottom-btn:active {
+  background: #003366;
+  transform: scale(0.97);
 }
 @media (max-width: 600px) {
   .scroll-to-bottom-btn {
     right: 12px;
-    bottom: 80px;
-    width: 38px;
-    height: 38px;
-    font-size: 1.3em;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    width: 48px;
+    height: 48px;
+    font-size: 1.5em;
+    border-radius: 50%;
+    box-shadow: 0 4px 16px #4f8cff33, 0 2px 8px #0002;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+}
+body.light-mode .scroll-to-bottom-btn {
+  background: #007bff;
+  color: #fff;
+  box-shadow: 0 4px 16px #007bff33, 0 2px 8px #0002;
+}
+body.light-mode .scroll-to-bottom-btn:hover, body.light-mode .scroll-to-bottom-btn:focus {
+  background: #0056b3;
+  box-shadow: 0 6px 24px #007bff55;
+}
+body:not(.light-mode) .scroll-to-bottom-btn {
+  background: #4f8cff;
+  color: #fff;
+  box-shadow: 0 4px 16px #4f8cff33, 0 2px 8px #0002;
+}
+body:not(.light-mode) .scroll-to-bottom-btn:hover, body:not(.light-mode) .scroll-to-bottom-btn:focus {
+  background: #0056b3;
+  box-shadow: 0 6px 24px #4f8cff55;
 }
 
 /* --- Markdown Table Styling --- */
