@@ -13,7 +13,8 @@ const SettingsController = (function() {
         enableCoT: true,  // Default: checked
         showThinking: true,
         selectedModel: 'gpt-4.1-mini', // Default model
-        darkMode: true // Default dark mode is now true
+        darkMode: true, // Default dark mode is now true
+        debug: true // Debug logging ON by default
     };
 
     /**
@@ -32,6 +33,7 @@ const SettingsController = (function() {
         document.getElementById('show-thinking-toggle').checked = settings.showThinking;
         document.getElementById('model-select').value = settings.selectedModel;
         document.getElementById('dark-mode-toggle').checked = settings.darkMode;
+        document.getElementById('debug-toggle').checked = settings.debug;
         
         // Add event listeners
         document.getElementById('save-settings').addEventListener('click', saveSettings);
@@ -87,6 +89,7 @@ const SettingsController = (function() {
         document.getElementById('show-thinking-toggle').checked = settings.showThinking;
         document.getElementById('model-select').value = settings.selectedModel;
         document.getElementById('dark-mode-toggle').checked = settings.darkMode;
+        document.getElementById('debug-toggle').checked = settings.debug;
         // Focus first element
         setTimeout(() => {
             const modalContent = settingsModal.querySelector('.settings-modal__content');
@@ -119,6 +122,7 @@ const SettingsController = (function() {
         const showThinkingEnabled = document.getElementById('show-thinking-toggle').checked;
         const selectedModelValue = document.getElementById('model-select').value;
         const darkModeEnabled = document.getElementById('dark-mode-toggle').checked;
+        const debugEnabled = document.getElementById('debug-toggle').checked;
         
         settings = {
             ...settings,
@@ -126,7 +130,8 @@ const SettingsController = (function() {
             enableCoT: cotEnabled,
             showThinking: showThinkingEnabled,
             selectedModel: selectedModelValue,
-            darkMode: darkModeEnabled
+            darkMode: darkModeEnabled,
+            debug: debugEnabled
         };
         
         // Update light/dark mode class
@@ -158,6 +163,7 @@ const SettingsController = (function() {
                 showThinking: true,
                 selectedModel: 'gpt-4.1-mini',
                 darkMode: true,
+                debug: true,
                 ...savedSettings
             };
         } else {
@@ -166,7 +172,8 @@ const SettingsController = (function() {
                 enableCoT: true,
                 showThinking: true,
                 selectedModel: 'gpt-4.1-mini',
-                darkMode: true
+                darkMode: true,
+                debug: true
             };
         }
         
@@ -188,6 +195,10 @@ const SettingsController = (function() {
             const darkModeToggle = document.getElementById('dark-mode-toggle');
             if (darkModeToggle) {
                 darkModeToggle.checked = !!settings.darkMode;
+            }
+            const debugToggle = document.getElementById('debug-toggle');
+            if (debugToggle) {
+                debugToggle.checked = !!settings.debug;
             }
         }, 0);
     }

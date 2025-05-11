@@ -27,6 +27,13 @@ const ChatController = (function() {
         toolWorkflowActive: true
     };
 
+    // Debug logging helper
+    function debugLog(...args) {
+        if (state.settings && state.settings.debug) {
+            console.log('[AI-DEBUG]', ...args);
+        }
+    }
+
     // Add helper to robustly extract JSON tool calls (handles markdown fences)
     function extractToolCall(text) {
         const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -54,6 +61,7 @@ Begin Reasoning Now:
     // Tool handler registry
     const toolHandlers = {
         web_search: async function(args) {
+            debugLog('Tool: web_search', args);
             if (!args.query || typeof args.query !== 'string' || !args.query.trim()) {
                 UIController.addMessage('ai', 'Error: Invalid web_search query.');
                 return;
@@ -89,6 +97,7 @@ Begin Reasoning Now:
             UIController.clearStatus();
         },
         read_url: async function(args) {
+            debugLog('Tool: read_url', args);
             if (!args.url || typeof args.url !== 'string' || !/^https?:\/\//.test(args.url)) {
                 UIController.addMessage('ai', 'Error: Invalid read_url argument.');
                 return;
@@ -116,6 +125,7 @@ Begin Reasoning Now:
             UIController.clearStatus();
         },
         instant_answer: async function(args) {
+            debugLog('Tool: instant_answer', args);
             if (!args.query || typeof args.query !== 'string' || !args.query.trim()) {
                 UIController.addMessage('ai', 'Error: Invalid instant_answer query.');
                 return;
@@ -491,6 +501,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Enhanced processToolCall using registry and validation
     async function processToolCall(call) {
+        debugLog('processToolCall', call);
         if (!state.toolWorkflowActive) return;
         const { tool, arguments: args, skipContinue } = call;
         // Tool call loop protection
@@ -606,6 +617,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Autonomous follow-up: after AI suggests which results to read, auto-read and summarize
     async function autoReadAndSummarizeFromSuggestion(aiReply) {
+        debugLog('autoReadAndSummarizeFromSuggestion', aiReply);
         if (state.autoReadInProgress) return; // Prevent overlap
         if (!state.lastSearchResults || !Array.isArray(state.lastSearchResults) || !state.lastSearchResults.length) return;
         // Parse numbers from AI reply (e.g., "3,5,7,9,10")
@@ -634,6 +646,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Suggestion logic: ask AI which results to read
     async function suggestResultsToRead(results, query) {
+        debugLog('suggestResultsToRead', { results, query });
         if (!results || results.length === 0) return;
         const prompt = `Given these search results for the query: "${query}", which results (by number) are most relevant to read in detail?\n\n${results.map((r, i) => `${i+1}. ${r.title} - ${r.snippet}`).join('\n')}\n\nReply with a comma-separated list of result numbers.`;
         const selectedModel = SettingsController.getSettings().selectedModel;
@@ -692,6 +705,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Summarization logic (recursive, context-aware)
     async function summarizeSnippets(snippets = null, round = 1) {
+        debugLog('summarizeSnippets', { snippets, round });
         if (!snippets) snippets = state.readSnippets;
         if (!snippets.length) return;
         const selectedModel = SettingsController.getSettings().selectedModel;
@@ -793,6 +807,7 @@ Answer: [your final, concise answer based on the reasoning above]`;
 
     // Add synthesizeFinalAnswer helper
     async function synthesizeFinalAnswer(summaries) {
+        debugLog('synthesizeFinalAnswer', summaries);
         if (!summaries || !state.originalUserQuestion) return;
         const selectedModel = SettingsController.getSettings().selectedModel;
         const prompt = `Based on the following summaries, provide a final, concise answer to the original question.\n\nSummaries:\n${summaries}\n\nOriginal question: ${state.originalUserQuestion}`;
