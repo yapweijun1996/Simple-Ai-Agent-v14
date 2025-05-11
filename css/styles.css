@@ -189,6 +189,7 @@ body:not(.light-mode) .chat-app__message.ai-message {
     word-break: break-word;
     font-size: 1.05rem;
     line-height: 1.6;
+    padding-bottom: 1.2em; /* Add space for timestamp below */
 }
 
 /* Keep compatibility with existing JS */
@@ -590,9 +591,8 @@ body:not(.light-mode) .chat-app__message.ai-message {
 .chat-app__timestamp {
     font-size: 0.75rem;
     color: #aaa;
-    position: absolute;
-    right: 14px;
-    bottom: 8px;
+    display: block;
+    position: static;
     background: none;
     padding: 0;
     border-radius: 0;
@@ -600,9 +600,12 @@ body:not(.light-mode) .chat-app__message.ai-message {
     text-align: right;
     white-space: nowrap;
     opacity: 0.7;
+    margin-top: -0.8em;
+    margin-bottom: 0.2em;
+    align-self: flex-end;
 }
 body:not(.light-mode) .chat-app__timestamp {
-    background: rgba(30,35,48,0.7);
+    background: none;
     color: #b0b0b0;
 }
 
