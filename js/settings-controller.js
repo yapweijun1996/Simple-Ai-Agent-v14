@@ -43,6 +43,33 @@ const SettingsController = (function() {
                 hideSettingsModal();
             }
         });
+
+        // Focus trap logic
+        const modalContent = settingsModal.querySelector('.settings-modal__content');
+        const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        let focusableEls = Array.from(modalContent.querySelectorAll(focusableSelectors));
+        let firstEl = focusableEls[0];
+        let lastEl = focusableEls[focusableEls.length - 1];
+        settingsModal.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                focusableEls = Array.from(modalContent.querySelectorAll(focusableSelectors));
+                firstEl = focusableEls[0];
+                lastEl = focusableEls[focusableEls.length - 1];
+                if (e.shiftKey) {
+                    if (document.activeElement === firstEl) {
+                        e.preventDefault();
+                        lastEl.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastEl) {
+                        e.preventDefault();
+                        firstEl.focus();
+                    }
+                }
+            } else if (e.key === 'Escape') {
+                hideSettingsModal();
+            }
+        });
     }
 
     /**
@@ -60,6 +87,14 @@ const SettingsController = (function() {
         document.getElementById('show-thinking-toggle').checked = settings.showThinking;
         document.getElementById('model-select').value = settings.selectedModel;
         document.getElementById('dark-mode-toggle').checked = settings.darkMode;
+        // Focus first element
+        setTimeout(() => {
+            const modalContent = settingsModal.querySelector('.settings-modal__content');
+            const focusable = modalContent.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusable.length) focusable[0].focus();
+        }, 0);
+        // Save last focused element
+        showSettingsModal.lastFocused = document.activeElement;
     }
 
     /**
@@ -68,6 +103,10 @@ const SettingsController = (function() {
     function hideSettingsModal() {
         if (settingsModal) {
             settingsModal.style.display = 'none';
+            // Restore focus to settings button
+            if (showSettingsModal.lastFocused) {
+                showSettingsModal.lastFocused.focus();
+            }
         }
     }
 

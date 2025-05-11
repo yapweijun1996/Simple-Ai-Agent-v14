@@ -1114,4 +1114,52 @@ body:not(.light-mode) .search-result-snippet {
   .search-result-header {
     font-size: 0.97rem;
   }
+}
+
+/* Avatar styles for chat bubbles */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2em;
+  height: 2.2em;
+  border-radius: 50%;
+  background: var(--avatar-bg, #e0e7ef);
+  margin-right: 0.7em;
+  font-size: 1.3em;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.user-message .avatar {
+  background: #cce5ff;
+}
+.ai-message .avatar {
+  background: #e0e7ef;
+}
+
+/* Thinking dots animation */
+.thinking-dots {
+  display: inline-block;
+  font-weight: 500;
+}
+.thinking-dots .dot {
+  animation: blink 1.4s infinite both;
+  opacity: 0.5;
+}
+.thinking-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots .dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.5; }
+  40% { opacity: 1; }
+}
+
+/* Sticky chat controls on mobile */
+@media (max-width: 600px) {
+  #controls {
+    position: sticky;
+    bottom: 0;
+    background: var(--background-color, #fff);
+    z-index: 10;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 } 

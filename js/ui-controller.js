@@ -106,6 +106,17 @@ const UIController = (function() {
         const chatWindow = document.getElementById('chat-window');
         const messageElement = Utils.createFromTemplate('message-template');
         
+        // Add avatar
+        const avatar = document.createElement('span');
+        avatar.className = 'avatar';
+        avatar.setAttribute('aria-hidden', 'true');
+        if (sender === 'user') {
+            avatar.textContent = '🧑';
+        } else {
+            avatar.textContent = '🤖';
+        }
+        messageElement.insertBefore(avatar, messageElement.firstChild);
+        
         // Set appropriate class based on sender
         messageElement.classList.add(`${sender}-message`);
         // Add fade-in animation
@@ -438,7 +449,7 @@ const UIController = (function() {
     // Helper: Set thinking indicator
     function setThinkingIndicator(contentElement) {
         contentElement.className = 'chat-app__message-content thinking-indicator';
-        contentElement.textContent = 'Thinking...';
+        contentElement.innerHTML = '<span class="thinking-dots" aria-label="Thinking">Thinking<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span>';
     }
 
     // Helper: Set formatted content
