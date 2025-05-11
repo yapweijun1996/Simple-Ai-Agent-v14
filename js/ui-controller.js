@@ -130,21 +130,16 @@ const UIController = (function() {
         const chatWindow = document.getElementById('chat-window');
         const messageElement = Utils.createFromTemplate('message-template');
         
-        // Add avatar
-        const avatar = document.createElement('span');
-        avatar.className = 'avatar';
-        avatar.setAttribute('aria-hidden', 'true');
-        if (sender === 'user') {
-            avatar.textContent = '🧑';
-        } else {
-            avatar.textContent = '🤖';
-        }
-        messageElement.insertBefore(avatar, messageElement.firstChild);
-        
         // Set appropriate class based on sender
         messageElement.classList.add(`${sender}-message`);
         // Add fade-in animation
         messageElement.classList.add('fade-in');
+
+        // Group consecutive messages from the same sender
+        const lastMsg = Array.from(chatWindow.children).reverse().find(el => el.classList && el.classList.contains('chat-app__message'));
+        if (lastMsg && lastMsg.classList.contains(`${sender}-message`)) {
+            messageElement.classList.add('message-grouped');
+        }
         
         // Set timestamp
         const timestampElement = messageElement.querySelector('.chat-app__timestamp');

@@ -915,13 +915,6 @@ body:not(.light-mode) .chat-app__settings-button:focus {
     filter: brightness(1.03);
     transition: box-shadow 0.2s, filter 0.2s;
 }
-.avatar {
-    transition: box-shadow 0.2s, transform 0.2s;
-}
-.avatar:hover {
-    box-shadow: 0 2px 12px #4f8cff44;
-    transform: scale(1.08);
-}
 
 /* --- Grouped Messages --- */
 .message-grouped {
